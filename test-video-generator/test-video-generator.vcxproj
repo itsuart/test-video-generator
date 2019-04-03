@@ -108,13 +108,13 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <AdditionalIncludeDirectories>./libs;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./libs/ffmpeg;</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies />
-      <AdditionalLibraryDirectories>./libs</AdditionalLibraryDirectories>
+      <AdditionalDependencies>avcodec.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>./libs/ffmpeg;</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
       <Command>COPY  $(ProjectDir)bindeps\*.dll $(ProjectDir)bin\$(PlatformShortName)-$(Configuration)\</Command>
@@ -130,13 +130,13 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <AdditionalIncludeDirectories>./libs;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./libs/ffmpeg;</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies />
-      <AdditionalLibraryDirectories>./libs</AdditionalLibraryDirectories>
+      <AdditionalDependencies>avcodec.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>./libs/ffmpeg;</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
       <Command>COPY  $(ProjectDir)bindeps\*.dll $(ProjectDir)bin\$(PlatformShortName)-$(Configuration)\</Command>
@@ -154,7 +154,7 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <AdditionalIncludeDirectories>./libs;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./libs/ffmpeg;</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -162,8 +162,8 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies />
-      <AdditionalLibraryDirectories>./libs</AdditionalLibraryDirectories>
+      <AdditionalDependencies>avcodec.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>./libs/ffmpeg;</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
       <Command>COPY  $(ProjectDir)bindeps\*.dll $(ProjectDir)bin\$(PlatformShortName)-$(Configuration)\</Command>
@@ -181,7 +181,7 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <AdditionalIncludeDirectories>./libs;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./libs/ffmpeg;</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -189,8 +189,8 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies />
-      <AdditionalLibraryDirectories>./libs</AdditionalLibraryDirectories>
+      <AdditionalDependencies>avcodec.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>./libs/ffmpeg;</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
       <Command>COPY  $(ProjectDir)bindeps\*.dll $(ProjectDir)bin\$(PlatformShortName)-$(Configuration)\</Command>
