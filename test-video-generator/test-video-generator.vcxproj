@@ -116,6 +116,9 @@
       <AdditionalDependencies />
       <AdditionalLibraryDirectories>./libs</AdditionalLibraryDirectories>
     </Link>
+    <PostBuildEvent>
+      <Command>COPY  $(ProjectDir)bindeps\*.dll $(ProjectDir)bin\$(PlatformShortName)-$(Configuration)\</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -135,6 +138,9 @@
       <AdditionalDependencies />
       <AdditionalLibraryDirectories>./libs</AdditionalLibraryDirectories>
     </Link>
+    <PostBuildEvent>
+      <Command>COPY  $(ProjectDir)bindeps\*.dll $(ProjectDir)bin\$(PlatformShortName)-$(Configuration)\</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -149,6 +155,7 @@
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <AdditionalIncludeDirectories>./libs;</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -158,6 +165,9 @@
       <AdditionalDependencies />
       <AdditionalLibraryDirectories>./libs</AdditionalLibraryDirectories>
     </Link>
+    <PostBuildEvent>
+      <Command>COPY  $(ProjectDir)bindeps\*.dll $(ProjectDir)bin\$(PlatformShortName)-$(Configuration)\</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -172,6 +182,7 @@
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <AdditionalIncludeDirectories>./libs;</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -181,6 +192,9 @@
       <AdditionalDependencies />
       <AdditionalLibraryDirectories>./libs</AdditionalLibraryDirectories>
     </Link>
+    <PostBuildEvent>
+      <Command>COPY  $(ProjectDir)bindeps\*.dll $(ProjectDir)bin\$(PlatformShortName)-$(Configuration)\</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cc" />
