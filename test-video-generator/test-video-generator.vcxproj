@@ -108,12 +108,12 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <AdditionalIncludeDirectories>./libs/ffmpeg;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./libs/ffmpeg;./src;</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>avcodec.lib</AdditionalDependencies>
+      <AdditionalDependencies>avcodec.lib;avutil.lib;avformat.lib;swscale.lib;</AdditionalDependencies>
       <AdditionalLibraryDirectories>./libs/ffmpeg;</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
@@ -130,12 +130,12 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <AdditionalIncludeDirectories>./libs/ffmpeg;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./libs/ffmpeg;./src;</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>avcodec.lib</AdditionalDependencies>
+      <AdditionalDependencies>avcodec.lib;avutil.lib;avformat.lib;swscale.lib;</AdditionalDependencies>
       <AdditionalLibraryDirectories>./libs/ffmpeg;</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
@@ -154,7 +154,7 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <AdditionalIncludeDirectories>./libs/ffmpeg;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./libs/ffmpeg;./src;</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -162,7 +162,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>avcodec.lib</AdditionalDependencies>
+      <AdditionalDependencies>avcodec.lib;avutil.lib;avformat.lib;swscale.lib;</AdditionalDependencies>
       <AdditionalLibraryDirectories>./libs/ffmpeg;</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
@@ -181,7 +181,7 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <AdditionalIncludeDirectories>./libs/ffmpeg;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./libs/ffmpeg;./src;</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -189,7 +189,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>avcodec.lib</AdditionalDependencies>
+      <AdditionalDependencies>avcodec.lib;avutil.lib;avformat.lib;swscale.lib;</AdditionalDependencies>
       <AdditionalLibraryDirectories>./libs/ffmpeg;</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
@@ -197,10 +197,52 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\ffraii\AVCodecContextR.cc">
+      <SubType>
+      </SubType>
+    </ClCompile>
+    <ClCompile Include="src\ffraii\AVDictionaryR.cc">
+      <SubType>
+      </SubType>
+    </ClCompile>
+    <ClCompile Include="src\ffraii\AVFormatContextR.cc">
+      <SubType>
+      </SubType>
+    </ClCompile>
+    <ClCompile Include="src\ffraii\AVFrameR.cc">
+      <SubType>
+      </SubType>
+    </ClCompile>
+    <ClCompile Include="src\ffraii\SwsContextR.cc">
+      <SubType>
+      </SubType>
+    </ClCompile>
     <ClCompile Include="src\main.cc" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="libs\Readme.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\ffraii\AVCodecContextR.h">
+      <SubType>
+      </SubType>
+    </ClInclude>
+    <ClInclude Include="src\ffraii\AVDictionaryR.h">
+      <SubType>
+      </SubType>
+    </ClInclude>
+    <ClInclude Include="src\ffraii\AVFormatContextR.h">
+      <SubType>
+      </SubType>
+    </ClInclude>
+    <ClInclude Include="src\ffraii\AVFrameR.h">
+      <SubType>
+      </SubType>
+    </ClInclude>
+    <ClInclude Include="src\ffraii\SwsContextR.h">
+      <SubType>
+      </SubType>
+    </ClInclude>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
