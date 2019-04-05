@@ -1,5 +1,9 @@
 #include "FrameRenderer.h"
 #include <cassert>
+#include <string>
+
+#include "fmt/format.h"
+
 namespace test_video_generator {
     FrameRenderer::FrameRenderer(uint32_t width, uint32_t height)
         : m_width(width)
@@ -44,11 +48,17 @@ namespace test_video_generator {
         frame.right = m_width;
         ::FillRect(m_drawDc, &frame, m_backgroundBrush);
 
+        ::SelectObject(m_drawDc, m_textBrush);
+
         if (isBeep) {
-            ::SelectObject(m_drawDc, m_textBrush);
             ::TextOutA(m_drawDc, 0, 0, "BEEP", 4);
         }
+        uint64_t seconds = millis / 1000;
+        uint64_t minutes = seconds / 60;
+        uint64_t hours = minutes / 60;
 
+        std::string message = fmt::format("{:02}:{:02}:{:02} millis: {}", hours, minutes % 60, seconds % 60, millis);
+        ::TextOutA(m_drawDc, 0, m_height / 2, message.c_str(), message.length());
 
         ::GdiFlush();
     }

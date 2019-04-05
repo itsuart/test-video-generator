@@ -218,6 +218,7 @@
       <SubType>
       </SubType>
     </ClCompile>
+    <ClCompile Include="src\fmt\format.cc" />
     <ClCompile Include="src\FrameRenderer.cc">
       <SubType>
       </SubType>
@@ -254,6 +255,15 @@
       <SubType>
       </SubType>
     </ClInclude>
+    <ClInclude Include="src\fmt\color.h" />
+    <ClInclude Include="src\fmt\core.h" />
+    <ClInclude Include="src\fmt\format-inl.h" />
+    <ClInclude Include="src\fmt\format.h" />
+    <ClInclude Include="src\fmt\ostream.h" />
+    <ClInclude Include="src\fmt\posix.h" />
+    <ClInclude Include="src\fmt\printf.h" />
+    <ClInclude Include="src\fmt\ranges.h" />
+    <ClInclude Include="src\fmt\time.h" />
     <ClInclude Include="src\FrameRenderer.h">
       <SubType>
       </SubType>
