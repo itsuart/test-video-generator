@@ -197,6 +197,10 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\AudioRenderer.cc">
+      <SubType>
+      </SubType>
+    </ClCompile>
     <ClCompile Include="src\DeletableDc.cc" />
     <ClCompile Include="src\ffraii\AVCodecContextR.cc">
       <SubType>
@@ -219,7 +223,7 @@
       </SubType>
     </ClCompile>
     <ClCompile Include="src\fmt\format.cc" />
-    <ClCompile Include="src\FrameRenderer.cc">
+    <ClCompile Include="src\VideoRenderer.cc">
       <SubType>
       </SubType>
     </ClCompile>
@@ -234,6 +238,10 @@
     <Text Include="libs\Readme.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\AudioRenderer.h">
+      <SubType>
+      </SubType>
+    </ClInclude>
     <ClInclude Include="src\DeletableDc.h" />
     <ClInclude Include="src\ffraii\AVCodecContextR.h">
       <SubType>
@@ -264,7 +272,7 @@
     <ClInclude Include="src\fmt\printf.h" />
     <ClInclude Include="src\fmt\ranges.h" />
     <ClInclude Include="src\fmt\time.h" />
-    <ClInclude Include="src\FrameRenderer.h">
+    <ClInclude Include="src\VideoRenderer.h">
       <SubType>
       </SubType>
     </ClInclude>

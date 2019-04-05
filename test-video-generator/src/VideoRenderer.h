@@ -5,15 +5,15 @@
 #include "HBrush.h"
 
 namespace test_video_generator {
-    class FrameRenderer final {
+    class VideoRenderer final {
     public:
-        explicit FrameRenderer(uint32_t width, uint32_t height);
+        explicit VideoRenderer(uint32_t width, uint32_t height);
 
-        FrameRenderer(const FrameRenderer& other) = delete;
-        FrameRenderer& operator=(const FrameRenderer& other) = delete;
+        VideoRenderer(const VideoRenderer& other) = delete;
+        VideoRenderer& operator=(const VideoRenderer& other) = delete;
 
-        FrameRenderer(FrameRenderer&& other) = delete;
-        FrameRenderer& operator=(FrameRenderer&& other) = delete;
+        VideoRenderer(VideoRenderer&& other) = delete;
+        VideoRenderer& operator=(VideoRenderer&& other) = delete;
 
         void render(uint64_t millis, bool isBeep);
 

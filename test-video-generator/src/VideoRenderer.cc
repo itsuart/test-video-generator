@@ -1,11 +1,11 @@
-#include "FrameRenderer.h"
+#include "VideoRenderer.h"
 #include <cassert>
 #include <string>
 
 #include "fmt/format.h"
 
 namespace test_video_generator {
-    FrameRenderer::FrameRenderer(uint32_t width, uint32_t height)
+    VideoRenderer::VideoRenderer(uint32_t width, uint32_t height)
         : m_width(width)
         , m_height(height)
         , m_pData(nullptr)
@@ -39,7 +39,7 @@ namespace test_video_generator {
         ::SelectObject(m_drawDc, m_bitmap);
     }
 
-    void FrameRenderer::render(uint64_t millis, bool isBeep) {
+    void VideoRenderer::render(uint64_t millis, bool isBeep) {
 
         RECT frame;
         frame.left = 0;
@@ -63,7 +63,7 @@ namespace test_video_generator {
         ::GdiFlush();
     }
 
-    uint8_t* FrameRenderer::data() const {
+    uint8_t* VideoRenderer::data() const {
         return m_pData;
     }
 }

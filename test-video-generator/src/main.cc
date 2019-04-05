@@ -12,7 +12,8 @@
 #include "ffraii/SwsContextR.h"
 
 #define NOMINMAX
-#include "FrameRenderer.h"
+#include "VideoRenderer.h"
+#include "AudioRenderer.h"
 
 namespace {
     std::string av_error_to_string(int error) {
@@ -38,6 +39,124 @@ namespace {
 
         return frame;
     }
+
+    AVStream* add_stream(AVFormatContext* pFormatContext) {
+        AVStream* pStream = avformat_new_stream(pFormatContext, nullptr);
+        if (not pStream) {
+            fprintf(stderr, "Could not allocate stream\n");
+            return nullptr;
+        }
+        pStream->id = pFormatContext->nb_streams - 1;
+
+        return pStream;
+    }
+
+    constexpr AVPixelFormat STREAM_PIX_FMT = AV_PIX_FMT_YUV420P;
+    constexpr int VIDEO_WIDTH = 320;
+    constexpr int VIDEO_HEGIHT = 240;
+    constexpr unsigned FramesPerSecond = 25;
+    const AVRational TimeBase{ 1, FramesPerSecond };
+
+    AVCodecContext* alloc_video_codec_context(AVFormatContext* pFormatContext, const AVDictionary* pAllOptions) {
+        AVOutputFormat* fmt = pFormatContext->oformat;
+        assert(fmt->video_codec != AV_CODEC_ID_NONE);
+        AVCodec* videoCodec = avcodec_find_encoder(fmt->video_codec);
+
+        if (!videoCodec) {
+            fprintf(stderr, "Could not find encoder for '%s'\n", avcodec_get_name(fmt->video_codec));
+            return nullptr;
+        }
+
+        AVCodecContext* pVideoCodecContext = avcodec_alloc_context3(videoCodec);
+        if (!pVideoCodecContext) {
+            fprintf(stderr, "Could not alloc an encoding context\n");
+            return nullptr;
+        }
+        pVideoCodecContext->codec_id = fmt->video_codec;
+        pVideoCodecContext->bit_rate = 400000;
+        pVideoCodecContext->width = VIDEO_WIDTH;
+        pVideoCodecContext->height = VIDEO_HEGIHT;
+        pVideoCodecContext->time_base = TimeBase;
+        pVideoCodecContext->gop_size = 10; /* emit one intra frame every 10 frames at most */
+        pVideoCodecContext->pix_fmt = STREAM_PIX_FMT;
+
+        {
+            ffraii::AVDictionaryR opt;
+            av_dict_copy(opt.p_value(), pAllOptions, 0);
+
+            /* open the codec */
+            int ret = avcodec_open2(pVideoCodecContext, nullptr, opt.p_value());
+
+            if (ret < 0) {
+                fprintf(stderr, "Could not open video codec: %s\n", av_error_to_string(ret).c_str());
+                return nullptr;
+            }
+        }
+
+        return pVideoCodecContext;
+    }
+
+    AVCodecContext* alloc_audio_codec_context(AVFormatContext* pFormatContext, const AVDictionary* pAllOptions) {
+        AVOutputFormat* fmt = pFormatContext->oformat;
+        assert(fmt->audio_codec != AV_CODEC_ID_NONE);
+        AVCodec* audioCodec = avcodec_find_encoder(fmt->audio_codec);
+
+        if (!audioCodec) {
+            fprintf(stderr, "Could not find encoder for '%s'\n", avcodec_get_name(fmt->audio_codec));
+            return nullptr;
+        }
+
+        AVCodecContext* pAudioCodecContext = avcodec_alloc_context3(audioCodec);
+        if (!pAudioCodecContext) {
+            fprintf(stderr, "Could not alloc an encoding context\n");
+            return nullptr;
+        }
+
+        pAudioCodecContext->sample_fmt = AV_SAMPLE_FMT_FLTP;
+        pAudioCodecContext->bit_rate = 64000;
+        pAudioCodecContext->sample_rate = 44100;
+        pAudioCodecContext->channels = 1;
+        pAudioCodecContext->channel_layout = AV_CH_LAYOUT_MONO;
+
+
+        {
+            ffraii::AVDictionaryR opt;
+            av_dict_copy(opt.p_value(), pAllOptions, 0);
+
+            /* open the codec */
+            int ret = avcodec_open2(pAudioCodecContext, nullptr, opt.p_value());
+
+            if (ret < 0) {
+                fprintf(stderr, "Could not open audio codec: %s\n", av_error_to_string(ret).c_str());
+                return nullptr;
+            }
+        }
+
+        return pAudioCodecContext;
+    }
+
+    AVFrame* alloc_audio_frame(AVCodecContext* pAudioCodecContext) {
+        AVFrame* frame = av_frame_alloc();
+        if (!frame) {
+            fprintf(stderr, "Error allocating an audio frame\n");
+            return nullptr;
+        }
+
+        frame->format = pAudioCodecContext->sample_fmt;
+        frame->channel_layout = pAudioCodecContext->channel_layout;
+        frame->sample_rate = pAudioCodecContext->sample_rate;
+        frame->nb_samples = pAudioCodecContext->frame_size * pAudioCodecContext->channels;
+
+        {
+            int ret = av_frame_get_buffer(frame, 0);
+            if (ret < 0) {
+                fprintf(stderr, "Error allocating an audio buffer\n");
+                return nullptr;
+            }
+        }
+
+        return frame;
+    }
 }
 
 using namespace test_video_generator;
@@ -56,66 +175,24 @@ int wmain(int /*argc*/, const wchar_t** /*argv*/) {
             return 1;
         }
     }
-
-    AVOutputFormat* fmt = formatContext->oformat;
-
+    // ----------------- COMMON
     ffraii::AVDictionaryR allOptions;
 
-    constexpr AVPixelFormat STREAM_PIX_FMT = AV_PIX_FMT_YUV420P;
-    constexpr int VIDEO_WIDTH = 320;
-    constexpr int VIDEO_HEGIHT = 240;
-    constexpr unsigned FramesPerSecond = 25;
-    /* timebase: This is the fundamental unit of time (in seconds) in terms
-     * of which frame timestamps are represented. For fixed-fps content,
-     * timebase should be 1/framerate and timestamp increments should be
-     * identical to 1.
-     */
-    const AVRational TimeBase { 1, FramesPerSecond };
+    // ------------------- INIT VIDEO
 
-    assert(fmt->video_codec != AV_CODEC_ID_NONE);
-    AVCodec* videoCodec = avcodec_find_encoder(fmt->video_codec);
-
-    if (!videoCodec) {
-        fprintf(stderr, "Could not find encoder for '%s'\n", avcodec_get_name(fmt->video_codec));
+    AVStream* pVideoStream = add_stream(formatContext);
+    if (!pVideoStream) {
         return 1;
     }
-
-    AVStream* pVideoStream = avformat_new_stream(formatContext, nullptr);
-    if (not pVideoStream) {
-        fprintf(stderr, "Could not allocate stream\n");
-        return 1;
-    }
-    pVideoStream->id = formatContext->nb_streams - 1;
     pVideoStream->time_base = TimeBase;
 
-    ffraii::AVCodecContextR videoCodecContext(avcodec_alloc_context3(videoCodec));
+    ffraii::AVCodecContextR videoCodecContext(alloc_video_codec_context(formatContext, allOptions));
     if (!videoCodecContext) {
         fprintf(stderr, "Could not alloc an encoding context\n");
         return 1;
     }
 
-    videoCodecContext->codec_id = fmt->video_codec;
-    videoCodecContext->bit_rate = 400000;
-    videoCodecContext->width = VIDEO_WIDTH;
-    videoCodecContext->height = VIDEO_HEGIHT;
-    videoCodecContext->time_base = TimeBase;
-    videoCodecContext->gop_size = 10; /* emit one intra frame every 10 frames at most */
-    videoCodecContext->pix_fmt = STREAM_PIX_FMT;
-
-    {
-        ffraii::AVDictionaryR opt;
-        av_dict_copy(opt.p_value(), allOptions, 0);
-
-        /* open the codec */
-        int ret = avcodec_open2(videoCodecContext, videoCodec, opt.p_value());
-
-        if (ret < 0) {
-            fprintf(stderr, "Could not open video codec: %s\n", av_error_to_string(ret).c_str());
-            return 1;
-        }
-    }
-
-    /* copy the stream parameters to the muxer */
+    // copy the stream parameters to the muxer
     {
         int ret = avcodec_parameters_from_context(pVideoStream->codecpar, videoCodecContext);
         if (ret < 0) {
@@ -123,6 +200,31 @@ int wmain(int /*argc*/, const wchar_t** /*argv*/) {
             return 1;
         }
     }
+
+    // ------------------ INIT AUDIO
+
+    assert(formatContext->oformat->audio_codec != AV_CODEC_ID_NONE);
+    AVStream* pAudioStream = avformat_new_stream(formatContext, nullptr);
+    assert(pAudioStream);
+    pAudioStream->id = formatContext->nb_streams - 1;
+
+    ffraii::AVCodecContextR audioCodecContext(alloc_audio_codec_context(formatContext, allOptions));
+    if (!audioCodecContext) {
+        fprintf(stderr, "Could not alloc an encoding context\n");
+        return 1;
+    }
+    pAudioStream->time_base = { audioCodecContext->sample_rate };
+
+    // copy the stream parameters to the muxer
+    {
+        int ret = avcodec_parameters_from_context(pAudioStream->codecpar, audioCodecContext);
+        if (ret < 0) {
+            fprintf(stderr, "Could not copy the stream parameters\n");
+            return 1;
+        }
+    }
+
+    // ------------------- RENDER
 
     av_dump_format(formatContext, 0, filename, 1);
 
@@ -144,7 +246,19 @@ int wmain(int /*argc*/, const wchar_t** /*argv*/) {
     }
 
     {
-        FrameRenderer renderer(VIDEO_WIDTH, VIDEO_HEGIHT);
+        ffraii::AVFrameR audioFrame(alloc_audio_frame(audioCodecContext));
+        if (!audioFrame) {
+            fprintf(stderr, "Failed to audio frame");
+            return 1;
+        }
+        AudioRenderer audioRenderer(
+            audioCodecContext->channels,
+            audioCodecContext->frame_size,
+            audioCodecContext->sample_rate
+        );
+
+
+        VideoRenderer renderer(VIDEO_WIDTH, VIDEO_HEGIHT);
 
         // encoder input
         ffraii::AVFrameR videoFrame
@@ -203,7 +317,7 @@ int wmain(int /*argc*/, const wchar_t** /*argv*/) {
 
                 int ret = avcodec_send_frame(videoCodecContext, videoFrame);
                 if (ret < 0) {
-                    fprintf(stderr, "Error sending a frame for encoding:%s\n", av_error_to_string(ret).c_str());
+                    fprintf(stderr, "Error sending a video frame for encoding:%s\n", av_error_to_string(ret).c_str());
                     return 1;
                 }
 
@@ -237,12 +351,46 @@ int wmain(int /*argc*/, const wchar_t** /*argv*/) {
                 }
             }
 
-            //write 1 second of audio
-            if (beep) { // every odd second write signal
+            {
+                const uint64_t stopMillis = (second + 1) * 1000;
+                while (audioRenderer.millisRendered() < stopMillis) {
+                    audioRenderer.renderFrameInto(reinterpret_cast<float*>(audioFrame->data[0]));
 
-            } else { // every even -- silence
+                    int ret = avcodec_send_frame(audioCodecContext, audioFrame);
+                    if (ret < 0) {
+                        fprintf(stderr, "Error sending an audio frame for encoding:%s\n", av_error_to_string(ret).c_str());
+                        return 1;
+                    }
 
+                    AVPacket pkt = {};
+                    av_init_packet(&pkt);
+
+                    while (ret >= 0) {
+                        ret = avcodec_receive_packet(audioCodecContext, &pkt);
+                        if (ret == AVERROR(EAGAIN) || ret == AVERROR_EOF)
+                            break;
+                        else if (ret < 0) {
+                            fprintf(stderr, "Error during audio encoding:%s\n", av_error_to_string(ret).c_str());
+                            return 1;
+                        }
+
+                        pkt.stream_index = pAudioStream->index;
+
+                        /* Write the compressed frame to the media file. */
+                        {
+                            int ret = av_interleaved_write_frame(formatContext, &pkt);
+                            if (ret < 0) {
+                                fprintf(stderr, "av_interleaved_write_frame failed:%s\n", av_error_to_string(ret).c_str());
+                                return 1;
+                            }
+                        }
+
+
+                        av_packet_unref(&pkt);
+                    }
+                }
             }
+
         }
     }
 
