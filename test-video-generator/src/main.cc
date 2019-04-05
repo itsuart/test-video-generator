@@ -11,6 +11,9 @@
 #include "ffraii/AVDictionaryR.h"
 #include "ffraii/SwsContextR.h"
 
+#define NOMINMAX
+#include "FrameRenderer.h"
+
 namespace {
     std::string av_error_to_string(int error) {
         std::string errorMessageBuffer(4096, '\0');
@@ -37,6 +40,8 @@ namespace {
     }
 }
 
+using namespace test_video_generator;
+
 int wmain(int /*argc*/, const wchar_t** /*argv*/) {
     avcodec_register_all();
     av_register_all();
@@ -57,8 +62,8 @@ int wmain(int /*argc*/, const wchar_t** /*argv*/) {
     ffraii::AVDictionaryR allOptions;
 
     constexpr AVPixelFormat STREAM_PIX_FMT = AV_PIX_FMT_YUV420P;
-    constexpr int VIDEO_WIDTH = 800;
-    constexpr int VIDEO_HEGIHT = 600;
+    constexpr int VIDEO_WIDTH = 320;
+    constexpr int VIDEO_HEGIHT = 240;
     constexpr unsigned FramesPerSecond = 25;
     /* timebase: This is the fundamental unit of time (in seconds) in terms
      * of which frame timestamps are represented. For fixed-fps content,
@@ -139,11 +144,7 @@ int wmain(int /*argc*/, const wchar_t** /*argv*/) {
     }
 
     {
-        ffraii::AVFrameR drawFrame
-            = allocVideoFrame(AVPixelFormat::AV_PIX_FMT_0RGB, videoCodecContext->width, videoCodecContext->height);
-        if (!drawFrame) {
-            return 1;
-        }
+        FrameRenderer renderer(VIDEO_WIDTH, VIDEO_HEGIHT);
 
         // encoder input
         ffraii::AVFrameR videoFrame
@@ -154,7 +155,7 @@ int wmain(int /*argc*/, const wchar_t** /*argv*/) {
 
         ffraii::SwsContextR scaler(
             sws_getContext(
-                drawFrame->width, drawFrame->height, static_cast<AVPixelFormat>(drawFrame->format),
+                VIDEO_WIDTH, VIDEO_HEGIHT, AV_PIX_FMT_BGR0,
                 videoFrame->width, videoFrame->height, static_cast<AVPixelFormat>(videoFrame->format),
                 SWS_BICUBIC, nullptr, nullptr, nullptr)
         );
@@ -166,27 +167,25 @@ int wmain(int /*argc*/, const wchar_t** /*argv*/) {
 
         // now write a hour long video
         for (uint64_t second = 0; second < std::chrono::seconds(std::chrono::minutes(1)).count(); ++second) {
+
+            const bool beep = 1 == (second % 2);
             //write 1 second of video (that is, 25 frames)
             for (unsigned frameId = 0; frameId < FramesPerSecond; ++frameId) {
                 const int64_t pts = second * FramesPerSecond + frameId;
                 const uint64_t millisecond = second * 1000 + frameId * 1000 / FramesPerSecond;
 
                 {
-                    //draw the frame in RGB and then convert it into YUV
-                    std::memset(drawFrame->data[0], (uint8_t)pts, drawFrame->height * drawFrame->width * 4);
-                    /*
-                    uint32_t* pPixel = reinterpret_cast<uint32_t*>(drawFrame->data[0]);
-                    uint32_t color = (uint32_t)pts;
-                    for (int y = 0; y < drawFrame->height; ++y) {
-                        for (int x = 0; x < drawFrame->width; ++x) {
-                            pPixel[x + y * drawFrame->width] = color;
-                        }
-                    }
-                    */
+                    renderer.render(millisecond, beep);
                     {
+                        uint8_t* array1[8] = {};
+                        array1[0] = renderer.data();
+
+                        int array2[8] = {};
+                        array2[0] = 4 * VIDEO_WIDTH;
+
                         int ret = sws_scale(
                             scaler,
-                            (const uint8_t * const *)drawFrame->data, drawFrame->linesize, 0
+                            array1, array2, 0
                             , videoFrame->height, videoFrame->data, videoFrame->linesize);
                         if (ret < 0) {
                             fprintf(stderr, "sws_scale failed:%s\n", av_error_to_string(ret).c_str());
@@ -239,7 +238,7 @@ int wmain(int /*argc*/, const wchar_t** /*argv*/) {
             }
 
             //write 1 second of audio
-            if (second % 2) { // every odd second write signal
+            if (beep) { // every odd second write signal
 
             } else { // every even -- silence
 
