@@ -55,7 +55,7 @@ namespace {
     constexpr int VIDEO_WIDTH = 320;
     constexpr int VIDEO_HEGIHT = 240;
     constexpr unsigned FramesPerSecond = 25;
-    const AVRational TimeBase{ 1, FramesPerSecond };
+    const AVRational VideoStreamTimeBase{ 1, FramesPerSecond };
 
     AVCodecContext* alloc_video_codec_context(AVFormatContext* pFormatContext, const AVDictionary* pAllOptions) {
         AVOutputFormat* fmt = pFormatContext->oformat;
@@ -76,7 +76,7 @@ namespace {
         pVideoCodecContext->bit_rate = 400000;
         pVideoCodecContext->width = VIDEO_WIDTH;
         pVideoCodecContext->height = VIDEO_HEGIHT;
-        pVideoCodecContext->time_base = TimeBase;
+        pVideoCodecContext->time_base = VideoStreamTimeBase;
         pVideoCodecContext->gop_size = 10; /* emit one intra frame every 10 frames at most */
         pVideoCodecContext->pix_fmt = STREAM_PIX_FMT;
 
@@ -184,7 +184,7 @@ int wmain(int /*argc*/, const wchar_t** /*argv*/) {
     if (!pVideoStream) {
         return 1;
     }
-    pVideoStream->time_base = TimeBase;
+    pVideoStream->time_base = VideoStreamTimeBase;
 
     ffraii::AVCodecContextR videoCodecContext(alloc_video_codec_context(formatContext, allOptions));
     if (!videoCodecContext) {
@@ -213,7 +213,7 @@ int wmain(int /*argc*/, const wchar_t** /*argv*/) {
         fprintf(stderr, "Could not alloc an encoding context\n");
         return 1;
     }
-    pAudioStream->time_base = { audioCodecContext->sample_rate };
+    pAudioStream->time_base = { 1, audioCodecContext->sample_rate };
 
     // copy the stream parameters to the muxer
     {
@@ -251,6 +251,7 @@ int wmain(int /*argc*/, const wchar_t** /*argv*/) {
             fprintf(stderr, "Failed to audio frame");
             return 1;
         }
+        audioFrame->pts = 0;
         AudioRenderer audioRenderer(
             audioCodecContext->channels,
             audioCodecContext->frame_size,
@@ -279,8 +280,9 @@ int wmain(int /*argc*/, const wchar_t** /*argv*/) {
             return 1;
         }
 
+
         // now write a hour long video
-        for (uint64_t second = 0; second < std::chrono::seconds(std::chrono::minutes(1)).count(); ++second) {
+        for (uint64_t second = 0; second < std::chrono::seconds(std::chrono::hours(1)).count(); ++second) {
 
             const bool beep = 1 == (second % 2);
             //write 1 second of video (that is, 25 frames)
@@ -334,7 +336,7 @@ int wmain(int /*argc*/, const wchar_t** /*argv*/) {
                     }
 
                     /* rescale output packet timestamp values from codec to stream timebase */
-                    av_packet_rescale_ts(&pkt, TimeBase, pVideoStream->time_base);
+                    av_packet_rescale_ts(&pkt, VideoStreamTimeBase, pVideoStream->time_base);
                     pkt.stream_index = pVideoStream->index;
 
                     /* Write the compressed frame to the media file. */
@@ -354,7 +356,7 @@ int wmain(int /*argc*/, const wchar_t** /*argv*/) {
             {
                 const uint64_t stopMillis = (second + 1) * 1000;
                 while (audioRenderer.millisRendered() < stopMillis) {
-                    audioRenderer.renderFrameInto(reinterpret_cast<float*>(audioFrame->data[0]));
+                    audioRenderer.renderFrameInto(audioFrame->data[0]);
 
                     int ret = avcodec_send_frame(audioCodecContext, audioFrame);
                     if (ret < 0) {
@@ -375,6 +377,7 @@ int wmain(int /*argc*/, const wchar_t** /*argv*/) {
                         }
 
                         pkt.stream_index = pAudioStream->index;
+                        av_packet_rescale_ts(&pkt, pAudioStream->time_base, pAudioStream->time_base);
 
                         /* Write the compressed frame to the media file. */
                         {
@@ -385,7 +388,7 @@ int wmain(int /*argc*/, const wchar_t** /*argv*/) {
                             }
                         }
 
-
+                        audioFrame->pts += audioCodecContext->frame_size;
                         av_packet_unref(&pkt);
                     }
                 }

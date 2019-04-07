@@ -1,5 +1,6 @@
 #pragma once
 #include <cstdint>
+#include <vector>
 
 namespace test_video_generator {
     class AudioRenderer final {
@@ -14,13 +15,15 @@ namespace test_video_generator {
 
         uint64_t millisRendered() const;
 
-        void renderFrameInto(float* pData);
+        void renderFrameInto(uint8_t* pData);
 
     private:
         uint64_t m_millisRendered;
-        unsigned m_samplesPerChannelPerFrame;
-        unsigned m_samplesPerSecond;
-        unsigned m_nChannels;
-        unsigned m_millisPerFrame;
+        std::size_t m_samplesPerChannelPerFrame;
+        std::size_t m_samplesPerSecond;
+        std::size_t m_nChannels;
+        std::size_t m_millisPerFrame;
+        std::vector<float> m_signal;
+        std::size_t m_nextReadIndex;
     };
 }
